@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LearnWithCats</title>
+    <meta name="description" content="Learn the ideas of coding by writing cats in a tiny language and seeing them in Python, JavaScript, C and C++." />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <h1>LearnWithCats</h1>
+        <p class="tagline" data-t="tagline"></p>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="it">IT</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel editor-panel">
+        <div class="panel-head">
+          <h2 data-t="program"></h2>
+          <select id="examples" aria-label="Examples"></select>
+        </div>
+        <div class="editor-wrap">
+          <pre id="gutter" aria-hidden="true"></pre>
+          <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Cat program"></textarea>
+        </div>
+        <h2 class="small-head" data-t="problems"></h2>
+        <ul id="messages" class="messages" aria-live="polite"></ul>
+        <details class="cheatsheet">
+          <summary data-t="cheatsheet"></summary>
+          <p data-t="cheatsheetHint"></p>
+          <ul id="cheatsheet-list"></ul>
+        </details>
+      </section>
+
+      <section class="panel stage-panel">
+        <h2 data-t="stage"></h2>
+        <div id="stage" class="stage"></div>
+        <div id="cards" class="cards"></div>
+      </section>
+
+      <section class="panel code-section">
+        <h2 data-t="realCode"></h2>
+        <div id="code" class="code-grid"></div>
+      </section>
+    </main>
+
+    <footer class="foot"><p data-t="footer"></p></footer>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
