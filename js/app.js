@@ -138,22 +138,53 @@ function renderCards() {
     .join('');
 }
 
+// Scrolls only the code box, never the whole page.
+function scrollInside(box, el) {
+  const top = el.offsetTop - box.offsetTop;
+  if (top < box.scrollTop || top + el.offsetHeight > box.scrollTop + box.clientHeight) {
+    box.scrollTop = Math.max(0, top - box.clientHeight / 3);
+  }
+}
+
+let codeLang = store.get('lwc-code') || 'python';
+let lastCode = {};
+
+function renderTabs() {
+  $('#code-tabs').innerHTML = LANGUAGES.map(
+    (l) =>
+      `<button type="button" role="tab" data-code="${l.id}" aria-selected="${l.id === codeLang}">${l.label}</button>`,
+  ).join('');
+}
+
 function renderCode() {
   const valid = parsedCats.filter((p) => cats.some((c) => c.name === p.name));
   const code = translate(valid, lang);
-  $('#code').innerHTML = LANGUAGES.map(
-    (l) => `
-    <section class="code-panel">
-      <h3>${l.label}</h3>
-      <pre>${code[l.id].map((line) => `<span class="code-line" data-src="${line.src ?? ''}">${escapeHtml(line.text) || ' '}</span>`).join('')}</pre>
-    </section>`,
-  ).join('');
+  const lines = code[codeLang];
+  // lines that did not exist in the previous version light up for a moment
+  const before = new Set(lastCode[codeLang] || []);
+  const isFirst = !lastCode[codeLang];
+  lastCode = Object.fromEntries(Object.entries(code).map(([k, v]) => [k, v.map((l) => l.text)]));
+  const view = $('#code');
+  view.innerHTML = lines
+    .map((line) => {
+      const changed = !isFirst && line.text && !before.has(line.text);
+      return `<span class="code-line${changed ? ' changed' : ''}" data-src="${line.src ?? ''}">${escapeHtml(line.text) || ' '}</span>`;
+    })
+    .join('');
+  const first = view.querySelector('.changed');
+  if (first) scrollInside(view, first);
   highlightCurrentLine();
 }
 
 function highlightCurrentLine() {
   const line = editor.value.slice(0, editor.selectionStart).split('\n').length;
-  document.querySelectorAll('.code-line').forEach((el) => el.classList.toggle('active', el.dataset.src === String(line)));
+  let firstActive = null;
+  document.querySelectorAll('.code-line').forEach((el) => {
+    const on = el.dataset.src === String(line);
+    el.classList.toggle('active', on);
+    if (on && !firstActive) firstActive = el;
+  });
+  if (firstActive) scrollInside($('#code'), firstActive);
 }
 
 // ---------- stage ----------
@@ -273,9 +304,20 @@ document.querySelectorAll('.lang-switch button').forEach((b) =>
   }),
 );
 
+$('#code-tabs').addEventListener('click', (e) => {
+  const id = e.target.dataset?.code;
+  if (!id) return;
+  codeLang = id;
+  store.set('lwc-code', id);
+  delete lastCode[id];
+  renderTabs();
+  renderCode();
+});
+
 // ---------- start ----------
 
 editor.value = store.get('lwc-program') ?? exampleCode(EXAMPLES[0], lang);
+renderTabs();
 applyLanguage();
 update();
 setInterval(tick, TICK_MS);

@@ -20,6 +20,12 @@
     </header>
 
     <main class="layout">
+      <section class="panel stage-panel">
+        <h2 data-t="stage"></h2>
+        <div id="stage" class="stage"></div>
+        <div id="cards" class="cards"></div>
+      </section>
+
       <section class="panel editor-panel">
         <div class="panel-head">
           <h2 data-t="program"></h2>
@@ -38,15 +44,13 @@
         </details>
       </section>
 
-      <section class="panel stage-panel">
-        <h2 data-t="stage"></h2>
-        <div id="stage" class="stage"></div>
-        <div id="cards" class="cards"></div>
-      </section>
-
       <section class="panel code-section">
-        <h2 data-t="realCode"></h2>
-        <div id="code" class="code-grid"></div>
+        <div class="panel-head">
+          <h2 data-t="realCode"></h2>
+        </div>
+        <div id="code-tabs" class="code-tabs" role="tablist"></div>
+        <pre id="code" class="code-view" role="tabpanel" aria-live="polite"></pre>
+        <p class="code-hint" data-t="codeHint"></p>
       </section>
     </main>
 

@@ -88,7 +88,7 @@ textarea {
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   padding: 16px 24px;
   max-width: 1400px;
@@ -107,8 +107,70 @@ textarea {
   margin-bottom: 12px;
 }
 
-.code-section {
+.stage-panel {
   grid-column: 1 / -1;
+}
+
+.code-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.code-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.code-tabs button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.code-tabs button[aria-selected='true'] {
+  background: var(--code-bg);
+  border-color: var(--code-bg);
+  color: #fff;
+}
+
+.code-view {
+  position: relative;
+  margin: 0;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: auto;
+  height: 300px;
+}
+
+.code-line.changed {
+  animation: flash 1.6s ease-out;
+}
+
+@keyframes flash {
+  from {
+    background: rgba(255, 196, 0, 0.55);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+.code-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 8px 0 0;
 }
 
 .panel-head {
@@ -259,7 +321,7 @@ select {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
   gap: 12px;
   margin-top: 16px;
 }
@@ -303,29 +365,6 @@ select {
   margin: 0;
 }
 
-.code-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.code-panel h3 {
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-
-.code-panel pre {
-  margin: 0;
-  background: var(--code-bg);
-  color: var(--code-ink);
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 14px;
-  line-height: 1.5;
-  overflow-x: auto;
-}
-
 .code-line {
   display: block;
   padding: 0 12px;
@@ -354,9 +393,6 @@ select {
     padding: 16px 16px 4px;
   }
 
-  .code-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .stage pre {
     font-size: 12px;
