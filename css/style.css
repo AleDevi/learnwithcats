@@ -398,3 +398,128 @@ select {
     font-size: 12px;
   }
 }
+
+.write-in {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.write-in select {
+  max-width: none;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.toolbar select {
+  max-width: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.run {
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  padding: 4px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.run:active {
+  transform: translateY(1px);
+}
+
+.run-status {
+  min-height: 1.5em;
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.run-status.ok {
+  color: var(--ok);
+}
+
+.run-status.error {
+  color: var(--error);
+}
+
+.run-status.party {
+  color: var(--accent);
+}
+
+.mastery {
+  margin-top: 16px;
+}
+
+.mastery summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.mastery .hint {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 6px 0 12px;
+}
+
+.mastery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.feline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.88rem;
+}
+
+.feline pre {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.32;
+  background: var(--stage);
+  border-radius: 6px;
+  padding: 6px;
+  min-width: 9ch;
+  text-align: center;
+}
+
+.feline.locked pre {
+  color: #9aa1a9;
+}
+
+.feline strong {
+  display: block;
+}
+
+.feline .bar {
+  color: var(--muted);
+}
+
+.feline.done {
+  border-color: var(--accent);
+}
+
+.cheatsheet h4 {
+  margin: 12px 0 4px;
+  font-size: 0.9rem;
+}

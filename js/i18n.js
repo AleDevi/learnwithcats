@@ -1,6 +1,8 @@
 // Interface text in English (default) and Italian.
 
-import { KEYWORDS, VALUES, findKeyword, findValue, keywordWord, valueWord } from './words.js';
+import { KEYWORDS, VALUES, ADVANCED, findKeyword, findValue, keywordWord, valueWord } from './words.js';
+
+const LANG_LABEL = { cat: 'Cat', python: 'Python', javascript: 'JavaScript', c: 'C', cpp: 'C++' };
 
 export const UI = {
   en: {
@@ -25,6 +27,23 @@ export const UI = {
     male: 'male',
     noCats: 'Write a cat on the left to see it here.',
     footer: 'A prototype. The shared world, kittens and the cemetery come next.',
+    writeIn: 'Write in',
+    run: '▶ Run',
+    ran: 'Ran without errors.',
+    runFirst: 'Fix the errors first, then run.',
+    switchBlocked: 'Fix the errors first, then switch language: I translate only programs that work.',
+    mastery: 'Mastery',
+    masteryHint: 'Write cats in a real language and press Run. 5 cats and 5 different advanced options master a language and unlock its feline.',
+    cats: 'cats',
+    options: 'options',
+    mastered: 'mastered!',
+    unlocked: 'Unlocked',
+    lockedFeline: 'Locked',
+    allFour: 'all four',
+    advancedTitle: 'Only in real languages',
+    speciesTitle: 'Special felines (once unlocked)',
+    newMastery: (lang) => `You mastered ${LANG_LABEL[lang]}!`,
+    newFeline: (s) => `New feline unlocked: ${VALUES.species[s].en}. Try "species".`,
   },
   it: {
     tagline: 'Scrivi un gatto. Guardalo prendere vita. Vedilo in codice vero.',
@@ -48,10 +67,32 @@ export const UI = {
     male: 'maschio',
     noCats: 'Scrivi un gatto a sinistra per vederlo qui.',
     footer: 'Un prototipo. Il mondo condiviso, i gattini e il cimitero arrivano dopo.',
+    writeIn: 'Scrivi in',
+    run: '▶ Esegui',
+    ran: 'Eseguito senza errori.',
+    runFirst: 'Prima correggi gli errori, poi esegui.',
+    switchBlocked: 'Prima correggi gli errori, poi cambia linguaggio: traduco solo programmi che funzionano.',
+    mastery: 'Padronanza',
+    masteryHint: 'Scrivi gatti in un linguaggio vero e premi Esegui. 5 gatti e 5 opzioni avanzate diverse ti fanno padroneggiare un linguaggio e sbloccano il suo felino.',
+    cats: 'gatti',
+    options: 'opzioni',
+    mastered: 'padroneggiato!',
+    unlocked: 'Sbloccato',
+    lockedFeline: 'Bloccato',
+    allFour: 'tutti e quattro',
+    advancedTitle: 'Solo nei linguaggi veri',
+    speciesTitle: 'Felini speciali (una volta sbloccati)',
+    newMastery: (lang) => `Hai padroneggiato ${LANG_LABEL[lang]}!`,
+    newFeline: (s) => `Nuovo felino sbloccato: ${VALUES.species[s].it}. Prova "specie".`,
   },
 };
 
 const kw = (id, lang) => keywordWord(id, lang);
+const table = (p) => (p.advanced ? ADVANCED[p.key].values : VALUES[p.key]);
+const label = (p, lang) => (p.advanced || ADVANCED[p.key] ? ADVANCED[p.key][lang].label : kw(p.key, lang));
+const species = (s, lang) => VALUES.species[s][lang];
+const langList = (langs, lang) => langs.map((l) => LANG_LABEL[l]).join(lang === 'it' ? ', ' : ', ');
+const sug = (p, lang) => (p.suggestion ? (lang === 'it' ? ` Forse intendevi "${p.suggestion}"?` : ` Did you mean "${p.suggestion}"?`) : '');
 
 // Error and note messages. Each function gets the message params and the language.
 export const MESSAGES = {
@@ -93,13 +134,13 @@ export const MESSAGES = {
   },
   unknown_value: {
     en: (p) =>
-      `"${p.word}" is not a ${kw(p.key, 'en')} value.` +
+      `"${p.word}" is not a ${label(p, 'en')} value.` +
       (p.suggestion ? ` Did you mean "${p.suggestion}"?` : '') +
-      ` You can use: ${Object.values(VALUES[p.key]).map((v) => v.en).join(', ')}.`,
+      ` You can use: ${Object.values(table(p)).map((v) => v.en).join(', ')}.`,
     it: (p) =>
-      `"${p.word}" non è un valore valido per ${kw(p.key, 'it')}.` +
+      `"${p.word}" non è un valore valido per ${label(p, 'it')}.` +
       (p.suggestion ? ` Forse intendevi "${p.suggestion}"?` : '') +
-      ` Puoi usare: ${Object.values(VALUES[p.key]).map((v) => v.it).join(', ')}.`,
+      ` Puoi usare: ${Object.values(table(p)).map((v) => v.it).join(', ')}.`,
   },
   too_many_colors: {
     en: () => `A cat can have at most 3 colours.`,
@@ -133,6 +174,138 @@ export const MESSAGES = {
     en: () => `Fun fact: orange and cream cats always show tabby stripes, even with the solid gene.`,
     it: () => `Curiosità: i gatti arancioni e crema mostrano sempre le strisce, anche con il gene della tinta unita.`,
   },
+  only_real_languages: {
+    en: (p) => `"${ADVANCED[p.key].en.label}" is an advanced option: it only works in real languages. Pick Python, JavaScript, C or C++ above the editor.`,
+    it: (p) => `"${ADVANCED[p.key].it.label}" è un'opzione avanzata: funziona solo nei linguaggi veri. Scegli Python, JavaScript, C o C++ sopra l'editor.`,
+  },
+  species_locked: {
+    en: (p) => `The ${species(p.species, 'en')} is still locked. Master ${p.langs.length > 1 ? 'all four languages' : langList(p.langs, 'en')} to unlock it.`,
+    it: (p) => `Il felino "${species(p.species, 'it')}" è ancora bloccato. Padroneggia ${p.langs.length > 1 ? 'tutti e quattro i linguaggi' : langList(p.langs, 'it')} per sbloccarlo.`,
+  },
+  species_coat: {
+    en: (p) => `A ${species(p.species, 'en')} has its own coat, so the colours are ignored. Its genes still decide sex and lifespan.`,
+    it: (p) => `Il felino "${species(p.species, 'it')}" ha il suo mantello, quindi i colori vengono ignorati. I geni decidono comunque sesso e durata della vita.`,
+  },
+  tabby_type_hidden: {
+    en: () => `The tabby type only shows on tabby cats. This cat is solid, so you won't see it.`,
+    it: () => `Il tipo di tigratura si vede solo sui gatti tigrati. Questo gatto è a tinta unita, quindi non si vede.`,
+  },
+  expected: {
+    en: (p) => `I expected ${p.expected} here, but found ${p.found}.`,
+    it: (p) => `Qui mi aspettavo ${p.expected}, ma ho trovato ${p.found === 'the end' ? 'la fine' : p.found}.`,
+  },
+  missing_semicolon: {
+    en: () => `Missing ";" at the end of this line. In C and C++ every statement ends with a semicolon.`,
+    it: () => `Manca ";" alla fine di questa riga. In C e C++ ogni istruzione finisce con un punto e virgola.`,
+  },
+  needs_quotes: {
+    en: (p) => `${p.word} needs quotes: "${p.word}". Without quotes the computer looks for a variable called ${p.word}.`,
+    it: (p) => `${p.word} vuole le virgolette: "${p.word}". Senza virgolette il computer cerca una variabile chiamata ${p.word}.`,
+  },
+  wrong_form: {
+    en: (p) => `In ${LANG_LABEL[p.lang]}, ${label(p, 'en')} is written like this: ${p.example}.`,
+    it: (p) => `In ${LANG_LABEL[p.lang]}, ${label(p, 'it')} si scrive così: ${p.example}.`,
+  },
+  unknown_field: {
+    en: (p) => `A cat has no property called "${p.word}".` + sug(p, 'en'),
+    it: (p) => `Un gatto non ha una proprietà chiamata "${p.word}".` + sug(p, 'it'),
+  },
+  expected_list: {
+    en: (p) => `Colours are a list, even if there is only one: ${p.example}.`,
+    it: (p) => `I colori sono una lista, anche se ce n'è uno solo: ${p.example}.`,
+  },
+  empty_colors: {
+    en: () => `The list of colours is empty.`,
+    it: () => `La lista dei colori è vuota.`,
+  },
+  wrong_type: {
+    en: (p) => `${label(p, 'en')} needs ${{ bool: 'true or false', int: 'a whole number', number: 'a number' }[p.type]}.`,
+    it: (p) => `${label(p, 'it')} vuole ${{ bool: 'vero o falso (true/false)', int: 'un numero intero', number: 'un numero' }[p.type]}.`,
+  },
+  out_of_range: {
+    en: (p) => `${label(p, 'en')} must be between ${p.min} and ${p.max}.`,
+    it: (p) => `${label(p, 'it')} deve essere tra ${p.min} e ${p.max}.`,
+  },
+  python_bool: {
+    en: (p) => `In Python, true and false start with a capital letter: True, False (you wrote ${p.word}).`,
+    it: (p) => `In Python vero e falso si scrivono con la maiuscola: True, False (hai scritto ${p.word}).`,
+  },
+  lower_bool: {
+    en: (p) => `Here true and false are lowercase: true, false (you wrote ${p.word}). The capital letters are Python's.`,
+    it: (p) => `Qui vero e falso sono minuscoli: true, false (hai scritto ${p.word}). Le maiuscole sono di Python.`,
+  },
+  name_fixed: {
+    en: () => `A cat's name is given when it is created and can't change later.`,
+    it: () => `Il nome di un gatto si dà quando nasce e non può cambiare dopo.`,
+  },
+  name_string: {
+    en: () => `The name is text, so it goes in double quotes: "Luna".`,
+    it: () => `Il nome è un testo, quindi va tra virgolette doppie: "Luna".`,
+  },
+  duplicate_name: {
+    en: (p) => `There is already a cat called ${p.name}. Every cat needs its own name.`,
+    it: (p) => `C'è già un gatto che si chiama ${p.name}. Ogni gatto vuole un nome suo.`,
+  },
+  redeclared: {
+    en: (p) => `The variable ${p.name} already exists. Use another name for the new cat.`,
+    it: (p) => `La variabile ${p.name} esiste già. Usa un altro nome per il nuovo gatto.`,
+  },
+  missing_name_field: {
+    en: () => `This cat has no name. Add name="…" (or .name = "…" in C).`,
+    it: () => `Questo gatto non ha un nome. Aggiungi nome="…" (o .nome = "…" in C).`,
+  },
+  unknown_variable: {
+    en: (p) => `There is no cat called ${p.name} yet. A variable must be created before it is used.` + sug(p, 'en'),
+    it: (p) => `Non esiste ancora un gatto chiamato ${p.name}. Una variabile va creata prima di usarla.` + sug(p, 'it'),
+  },
+  already_added: {
+    en: (p) => `${p.name} is already in the world.`,
+    it: (p) => `${p.name} è già nel mondo.`,
+  },
+  meow_string: {
+    en: () => `What a cat says is text, so it goes in quotes.`,
+    it: () => `Quello che dice un gatto è un testo, quindi va tra virgolette.`,
+  },
+  unknown_method: {
+    en: (p) => `I don't know the method ${p.name}.` + sug(p, 'en'),
+    it: (p) => `Non conosco il metodo ${p.name}.` + sug(p, 'it'),
+  },
+  unknown_function: {
+    en: (p) => `I don't know the function ${p.name}.` + sug(p, 'en'),
+    it: (p) => `Non conosco la funzione ${p.name}.` + sug(p, 'it'),
+  },
+  missing_new: {
+    en: () => `In JavaScript you create an object with "new": new Cat({ … }).`,
+    it: () => `In JavaScript un oggetto si crea con "new": new Gatto({ … }).`,
+  },
+  python_colon: {
+    en: () => `In Python, inside Cat( … ) you write name="value" with "=", not ":".`,
+    it: () => `In Python, dentro Gatto( … ) si scrive nome="valore" con "=", non ":".`,
+  },
+  unknown_statement: {
+    en: (p) => `I don't understand what starts with ${p.found}.`,
+    it: (p) => `Non capisco l'istruzione che comincia con ${p.found}.`,
+  },
+  not_added: {
+    en: (p) => `${p.name} exists but is not in the world yet: add it with ${p.lang === 'c' ? 'world_add(&world, &…);' : 'world.add(…)'}.`,
+    it: (p) => `${p.name} esiste ma non è ancora nel mondo: aggiungilo con ${p.lang === 'c' ? 'mondo_aggiungi(&mondo, &…);' : 'mondo.aggiungi(…)'}.`,
+  },
+  hash_comment: {
+    en: (p) => `In ${LANG_LABEL[p.lang]} comments start with //, not #.`,
+    it: (p) => `In ${LANG_LABEL[p.lang]} i commenti cominciano con //, non con #.`,
+  },
+  c_single_quotes: {
+    en: () => `In C and C++ text goes in double quotes "…". Single quotes are for one character only.`,
+    it: () => `In C e C++ il testo va tra virgolette doppie "…". Gli apici singoli servono per un carattere solo.`,
+  },
+  unterminated_string: {
+    en: () => `This text is missing its closing quote.`,
+    it: () => `A questo testo manca la virgoletta di chiusura.`,
+  },
+  unexpected_char: {
+    en: (p) => `I don't know what "${p.char}" means here.`,
+    it: (p) => `Non so cosa significhi "${p.char}" qui.`,
+  },
 };
 
 export function message(entry, lang) {
@@ -141,6 +314,7 @@ export function message(entry, lang) {
 }
 
 export function coatName(cat, lang) {
+  if (cat.species) return species(cat.species, lang);
   const { coat } = cat;
   const words = coat.colors.map((c) => valueWord('colors', c, lang));
   const parts = [];
@@ -204,6 +378,48 @@ export const EXAMPLES = [
     id: 'bug',
     label: { en: 'Find the bug: a calico male', it: 'Trova l\'errore: un maschio calico' },
     code: `cat Oscar\n  sex: male\n  colors: orange, black, white\n`,
+  },
+  {
+    id: 'dressed',
+    lang: 'python',
+    real: true,
+    label: { en: 'Luna dressed up (advanced)', it: 'Luna elegante (avanzato)' },
+    code: `luna = Cat(\n    name="Luna",\n    sex="female",\n    colors=["orange", "black", "white"],\n    eye_color="odd",\n    collar="red",\n    bell=True,\n    hat=True,\n)\nworld.add(luna)\nluna.meow("hello!")\n`,
+  },
+  {
+    id: 'lazy',
+    lang: 'python',
+    real: true,
+    label: { en: 'A big lazy friendly cat (advanced)', it: 'Un gattone pigro e socievole (avanzato)' },
+    code: `bruno = Cat(\n    name="Bruno",\n    colors=["grey", "white"],\n    weight=8.5,\n    speed=1,\n    sleepiness=5,\n    friendliness=5,\n)\nworld.add(bruno)\n\nmimi = Cat(\n    name="Mimi",\n    colors=["black"],\n    pattern="tabby",\n    tabby_type="spotted",\n    weight=3,\n    speed=5,\n    bow=True,\n)\nworld.add(mimi)\nmimi.meow("wake up!")\n`,
+  },
+  {
+    id: 'bug-python',
+    lang: 'python',
+    only: 'python',
+    label: { en: 'Find the bug (Python)', it: "Trova l'errore (Python)" },
+    code: `felix = Cat(\n    name="Felix",\n    colors=["black", "white"],\n    bell=true,\n)\nworld.add(felix)\n`,
+  },
+  {
+    id: 'bug-js',
+    lang: 'javascript',
+    only: 'javascript',
+    label: { en: 'Find the bug (JavaScript)', it: "Trova l'errore (JavaScript)" },
+    code: `const felix = new Cat({\n  name: "Felix",\n  colors: ["black", "white"],\n  eyeColor: "green",\n});\nworld.add(felx);\n`,
+  },
+  {
+    id: 'bug-c',
+    lang: 'c',
+    only: 'c',
+    label: { en: 'Find the bug (C)', it: "Trova l'errore (C)" },
+    code: `Cat felix = {\n    .name = "Felix",\n    .colors = { BLACK, WHITE },\n    .bell = true,\n}\nworld_add(&world, &felix);\n`,
+  },
+  {
+    id: 'bug-cpp',
+    lang: 'cpp',
+    only: 'cpp',
+    label: { en: 'Find the bug (C++)', it: "Trova l'errore (C++)" },
+    code: `Cat felix("Felix");\nfelix.colors = { Color::Black, Color::White };\nfelix.eyeColor = "green";\nworld.add(felix);\n`,
   },
 ];
 

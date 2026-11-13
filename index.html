@@ -24,13 +24,31 @@
         <h2 data-t="stage"></h2>
         <div id="stage" class="stage"></div>
         <div id="cards" class="cards"></div>
+        <details class="mastery" id="mastery-box" open>
+          <summary data-t="mastery"></summary>
+          <p class="hint" data-t="masteryHint"></p>
+          <div id="mastery" class="mastery-grid"></div>
+        </details>
       </section>
 
       <section class="panel editor-panel">
         <div class="panel-head">
           <h2 data-t="program"></h2>
-          <select id="examples" aria-label="Examples"></select>
+          <label class="write-in"><span data-t="writeIn"></span>
+            <select id="source-lang">
+              <option value="cat">Cat</option>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+            </select>
+          </label>
         </div>
+        <div class="toolbar">
+          <select id="examples" aria-label="Examples"></select>
+          <button type="button" id="run" class="run" data-t="run"></button>
+        </div>
+        <p id="run-status" class="run-status" aria-live="polite"></p>
         <div class="editor-wrap">
           <pre id="gutter" aria-hidden="true"></pre>
           <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Cat program"></textarea>

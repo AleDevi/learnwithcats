@@ -20,6 +20,8 @@ cat Luna
 - **Watch it.** The cat is drawn from interchangeable ASCII parts (ears, eyes, mouth, body, tail, legs), filled with its coat colours, and it walks, sits and sleeps.
 - **Compare.** The same program is shown in Python, JavaScript, C and C++. Click a line of your program to highlight the matching lines.
 - **Learn from errors.** Typos get a "did you mean". Impossible cats get a genetics lesson: for example, a male cat can't be orange and black, because the orange gene is on the X chromosome and males have only one X.
+- **Write in a real language.** Switch the editor to Python, JavaScript, C or C++ and you get many more options: eye colour (even odd eyes), tabby type, weight, collar, bell, bow, hat, speed, sleepiness, friendliness, and `meow("…")` for a speech bubble. Mistakes get explanations about the language itself: quotes, `True` vs `true`, semicolons, `new`, enum constants, variables used before they exist.
+- **Unlock special felines.** Press Run to count your cats. Five cats and five different advanced options in a language master it: Python unlocks the lion, JavaScript the cheetah, C the lynx, C++ the tiger. Master all four for the snow leopard. Progress is saved in your browser.
 - **English or Italian.** The interface and the language keywords work in both (`cat` / `gatto`, `eyes` / `occhi`…). Switching language rewrites your program.
 
 ### The genetics
@@ -60,13 +62,16 @@ npm test
 | --- | --- |
 | `index.html`, `css/style.css` | the page |
 | `js/words.js` | keywords and values in English and Italian |
-| `js/parser.js` | turns a program into data, or into friendly errors |
+| `js/parser.js` | reads the cat language |
+| `js/lang/tokens.js`, `js/lang/real.js` | read the small part of Python, JavaScript, C and C++ the game uses |
+| `js/program.js` | one entry point for all languages, plus the feline locks |
+| `js/progress.js` | mastery and unlocked felines |
 | `js/genetics.js` | genes, coat colours, DNA string, lifespan |
 | `js/cat.js` | the "cat function": draws a cat from its parts |
-| `js/translate.js` | the same cats in Python, JavaScript, C and C++ |
+| `js/translate.js` | writes the same cats in all five languages |
 | `js/i18n.js` | interface text, messages, examples |
 | `js/app.js` | connects everything and animates the stage |
-| `tests/` | tests for the parser, genetics, drawing and translations |
+| `tests/` | tests for the readers, genetics, drawing, translations and mastery |
 
 ## How it was made, and the AI inside
 

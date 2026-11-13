@@ -98,8 +98,8 @@ test('a program can be switched between languages and back', () => {
   assert.equal(translateProgram(it, 'en'), luna);
 });
 
-test('every example works as described, in both languages', () => {
-  for (const ex of EXAMPLES) {
+test('every cat-language example works as described, in both languages', () => {
+  for (const ex of EXAMPLES.filter((e) => !e.lang)) {
     for (const lang of ['en', 'it']) {
       const { cats, errors } = parse(exampleCode(ex, lang));
       assert.equal(errors.length, 0, `${ex.id} ${lang}`);

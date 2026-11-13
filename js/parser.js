@@ -6,7 +6,7 @@
 //
 // Lines starting with # are comments.
 
-import { KEYWORDS, VALUES, findKeyword, findValue, allWords } from './words.js';
+import { KEYWORDS, VALUES, findKeyword, findValue, findAdvanced, allWords } from './words.js';
 
 export const MAX_CATS = 3;
 const NAME_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N} '-]{0,19}$/u;
@@ -76,7 +76,7 @@ export function parse(source) {
         current = null;
         return;
       }
-      current = { name, line, props: {} };
+      current = { name, line, props: {}, adv: {}, actions: [], added: true, addLine: null };
       cats.push(current);
       return;
     }
@@ -93,6 +93,11 @@ export function parse(source) {
     const valueText = text.slice(colon + 1).trim();
     const key = findKeyword(keyWord);
 
+    const advanced = findAdvanced(keyWord.replace(/\s+/g, '_'));
+    if (!key && advanced) {
+      fail(line, 'only_real_languages', { key: advanced });
+      return;
+    }
     if (!key || key === 'cat') {
       fail(line, 'unknown_keyword', { word: keyWord, suggestion: suggest(keyWord, allWords(KEYWORDS)) });
       return;
