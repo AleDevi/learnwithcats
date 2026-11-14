@@ -47,6 +47,7 @@
         <div class="toolbar">
           <select id="examples" aria-label="Examples"></select>
           <button type="button" id="run" class="run" data-t="run"></button>
+          <button type="button" id="to-world" class="to-world" data-t="toWorld" disabled></button>
         </div>
         <p id="run-status" class="run-status" aria-live="polite"></p>
         <div class="editor-wrap">
@@ -69,6 +70,33 @@
         <div id="code-tabs" class="code-tabs" role="tablist"></div>
         <pre id="code" class="code-view" role="tabpanel" aria-live="polite"></pre>
         <p class="code-hint" data-t="codeHint"></p>
+      </section>
+
+      <section class="panel world-panel" id="world">
+        <div class="panel-head">
+          <h2 data-t="world"></h2>
+          <div class="world-tabs" role="tablist">
+            <button type="button" role="tab" data-view="square" data-t="square" aria-selected="true"></button>
+            <button type="button" role="tab" data-view="cemetery" data-t="cemetery" aria-selected="false"></button>
+          </div>
+        </div>
+        <p class="hint" data-t="worldHint"></p>
+        <p id="world-mode" class="world-mode" data-t="loadingWorld"></p>
+        <div id="square-view">
+          <div id="square" class="square"></div>
+          <div class="player-row">
+            <label><span data-t="playerName"></span>
+              <input id="player-name" maxlength="20" autocomplete="nickname" />
+            </label>
+            <span id="your-count" class="hint"></span>
+          </div>
+          <p id="world-status" class="run-status" aria-live="polite"></p>
+          <h3 class="small-head" data-t="livingTitle"></h3>
+          <ul id="living" class="living"></ul>
+        </div>
+        <div id="cemetery-view" hidden>
+          <ul id="cemetery" class="cemetery"></ul>
+        </div>
       </section>
     </main>
 

@@ -52,7 +52,8 @@ function bodyFromWeight(kg) {
 export function makeCat(parsed) {
   const { name, props } = parsed;
   const adv = Object.fromEntries(Object.entries(parsed.adv || {}).map(([k, v]) => [k, v.value]));
-  const { genome, errors, notes } = buildGenome(props, name);
+  // kittens arrive with genes inherited from their parents
+  const { genome, errors, notes } = parsed.genome ? { genome: parsed.genome, errors: [], notes: [] } : buildGenome(props, name);
   if (!genome) return { name, errors, notes };
   const rng = makeRng(`looks:${name}`);
   const traits = {};

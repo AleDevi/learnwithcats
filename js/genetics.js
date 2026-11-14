@@ -85,7 +85,7 @@ export function buildGenome(props, seed) {
 }
 
 // Dominant allele first, so S/s is written "Ss" and never "sS".
-function sortAlleles(pair) {
+export function sortAlleles(pair) {
   return [...pair].sort((a, b) => (a === a.toUpperCase() ? -1 : 0) - (b === b.toUpperCase() ? -1 : 0));
 }
 

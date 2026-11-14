@@ -1,0 +1,43 @@
+# Publishes the game to IONOS over SFTP. It runs only when started by hand
+# (Actions -> Deploy to IONOS -> Run workflow), after the tests pass.
+#
+# Repository secrets to add in GitHub (Settings -> Secrets and variables -> Actions):
+#   IONOS_SFTP_HOST      the SFTP server, e.g. access-5000000000.webspace-host.com
+#   IONOS_SFTP_USER      the SFTP user
+#   IONOS_SFTP_PASSWORD  the SFTP password
+#   IONOS_SFTP_PATH      the folder of the game on the server, e.g. /learnwithcats
+#
+# api/config.php (database password and salt) is never in the repo: upload it
+# once by hand. This workflow never deletes files on the server.
+
+name: Deploy to IONOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+      - name: Upload over SFTP
+        env:
+          HOST: ${{ secrets.IONOS_SFTP_HOST }}
+          USER: ${{ secrets.IONOS_SFTP_USER }}
+          PASS: ${{ secrets.IONOS_SFTP_PASSWORD }}
+          DEST: ${{ secrets.IONOS_SFTP_PATH }}
+        run: |
+          lftp -u "$USER","$PASS" "sftp://$HOST" -e "
+            set sftp:auto-confirm yes;
+            mirror --reverse --verbose --only-newer \
+              --exclude-glob .git/ --exclude-glob .github/ --exclude-glob tests/ \
+              --exclude-glob node_modules/ --exclude-glob '*.sqlite' \
+              --exclude api/config.php --exclude-glob package*.json \
+              ./ '$DEST';
+            bye"

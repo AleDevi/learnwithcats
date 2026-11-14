@@ -2,15 +2,20 @@
 // code panels and mastery.
 
 import { readProgram } from './program.js';
-import { makeCat, drawCat, drawFace, mirror } from './cat.js';
+import { makeCat, drawFace } from './cat.js';
+import { escapeHtml, cellsToHtml } from './html.js';
+import { placeActors, stepActors, actorsToHtml } from './motion.js';
 import { translate, programIn, LANGUAGES, REAL_LANGUAGES, fieldName, valueCode } from './translate.js';
-import { UI, message, coatName, translateProgram, EXAMPLES, exampleCode, KEYWORDS, VALUES } from './i18n.js';
+import { UI, message, MESSAGES, coatName, translateProgram, EXAMPLES, exampleCode, KEYWORDS, VALUES } from './i18n.js';
 import { PROPERTY_ORDER, ADVANCED, ADVANCED_ORDER, SPECIES_UNLOCK } from './words.js';
+import { connect, toRecord, MAX_LIVING_PER_PLAYER } from './world/store.js';
+import { lifeOf, dueLitters } from './world/life.js';
+import { createWorldView, livingHtml, cemeteryHtml } from './world/view.js';
+import { loadBlockedWords, isBlocked } from './world/moderation.js';
 import { loadProgress, saveProgress, record, isMastered, unlockedSpecies, CATS_NEEDED, OPTIONS_NEEDED } from './progress.js';
 
 const STAGE_WIDTH = 64;
 const TICK_MS = 220;
-const SPEED_STEPS = { 1: 0.34, 2: 0.5, 3: 1, 4: 1.5, 5: 2 };
 const ALL_SPECIES = Object.keys(SPECIES_UNLOCK);
 
 const $ = (sel) => document.querySelector(sel);
@@ -41,18 +46,8 @@ let cats = []; // cats built without errors and added to the world
 let readable = []; // parsed cats that can be translated
 let hasErrors = false;
 let actors = [];
-
-const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-
-function cellsToHtml(row) {
-  return row
-    .map((cell) => {
-      if (!cell.fg && !cell.bg) return escapeHtml(cell.ch);
-      const style = `${cell.fg ? `color:${cell.fg};` : ''}${cell.bg ? `background:${cell.bg};` : ''}`;
-      return `<span style="${style}">${escapeHtml(cell.ch)}</span>`;
-    })
-    .join('');
-}
+let blocked = null; // words not allowed in names, loaded at start
+let ranOk = false; // the program ran without errors since the last change
 
 // ---------- static text ----------
 
@@ -67,6 +62,9 @@ function applyLanguage() {
   renderExamples();
   renderCheatsheet();
   renderMastery();
+  $('#player-name').placeholder = t.playerNamePlaceholder;
+  renderWorldMode();
+  renderWorldLists();
 }
 
 function examplesFor(src) {
@@ -165,6 +163,7 @@ function update() {
   const ok = [];
   for (const p of result.cats) {
     const cat = makeCat(p);
+    if (isBlocked(blocked, p.name)) cat.errors.push({ line: p.line, code: 'blocked_name', params: { what: 'name' } });
     messages.push(...cat.errors.map((e) => ({ ...e, kind: 'error' })));
     messages.push(...cat.notes.map((e) => ({ ...e, kind: 'note' })));
     if (!cat.errors.length) {
@@ -176,6 +175,8 @@ function update() {
   hasErrors = messages.some((m) => m.kind === 'error');
   cats = built;
   readable = ok;
+  if (source !== lastRunSource) ranOk = false;
+  $('#to-world').disabled = !ranOk;
   renderMessages(messages);
   renderCards();
   renderCode();
@@ -280,6 +281,8 @@ function status(text, kind) {
 
 // ---------- run ----------
 
+let lastRunSource = null;
+
 function run() {
   const t = UI[lang];
   update();
@@ -287,6 +290,9 @@ function run() {
     status(t.runFirst, 'error');
     return;
   }
+  lastRunSource = editor.value;
+  ranOk = cats.length > 0;
+  $('#to-world').disabled = !ranOk;
   const lines = [t.ran];
   if (REAL_LANGUAGES.includes(srcLang)) {
     const result = record(progress, srcLang, readable);
@@ -319,56 +325,11 @@ function run() {
 // ---------- stage ----------
 
 function syncActors() {
-  actors = cats.map((cat, i) => {
-    const old = actors.find((a) => a.cat.name === cat.name);
-    const width = drawCat(cat).at(0).length;
-    return {
-      cat,
-      width,
-      x: old ? Math.max(0, Math.min(old.x, STAGE_WIDTH - width)) : Math.max(0, Math.floor((STAGE_WIDTH - width) * ((i * 0.37 + 0.2) % 1))),
-      dir: old ? old.dir : i % 2 ? -1 : 1,
-      mode: old ? old.mode : 'walk',
-      timer: old ? old.timer : 6 + i * 3,
-      step: old ? old.step : 0,
-      acc: 0,
-      say: old ? old.say : null,
-      sayUntil: old ? old.sayUntil : 0,
-    };
-  });
+  actors = placeActors(cats, actors, STAGE_WIDTH);
 }
 
 function tick() {
-  for (const a of actors) {
-    const { speed, sleepiness, friendliness } = a.cat.behaviour;
-    a.timer -= 1;
-    if (a.timer <= 0) {
-      if (a.mode === 'walk') {
-        a.mode = Math.random() < 0.1 + 0.15 * (sleepiness - 1) ? 'sleep' : 'sit';
-        a.timer = a.mode === 'sit' ? 8 + Math.floor(Math.random() * 10) : 14 + Math.floor(Math.random() * 8 * sleepiness);
-      } else {
-        a.mode = 'walk';
-        a.timer = Math.round((15 + Math.random() * 30) * ((7 - sleepiness) / 4));
-        const others = actors.filter((o) => o !== a);
-        if (others.length && Math.random() < 0.12 * friendliness) {
-          // friendly cats walk towards the nearest cat
-          const near = others.reduce((m, o) => (Math.abs(o.x - a.x) < Math.abs(m.x - a.x) ? o : m));
-          a.dir = near.x >= a.x ? 1 : -1;
-        } else if (Math.random() < 0.4) a.dir *= -1;
-      }
-    }
-    if (a.mode === 'walk') {
-      a.acc += SPEED_STEPS[speed] || 1;
-      while (a.acc >= 1) {
-        a.acc -= 1;
-        a.step += 1;
-        a.x += a.dir;
-        if (a.x <= 0 || a.x >= STAGE_WIDTH - a.width) {
-          a.x = Math.max(0, Math.min(a.x, STAGE_WIDTH - a.width));
-          a.dir *= -1;
-        }
-      }
-    }
-  }
+  stepActors(actors, STAGE_WIDTH);
   renderStage();
 }
 
@@ -378,25 +339,7 @@ function renderStage() {
     stage.innerHTML = `<p class="empty">${UI[lang].noCats}</p>`;
     return;
   }
-  const now = Date.now();
-  const rows = [];
-  for (const a of actors) {
-    const pose = a.mode === 'walk' ? (a.step % 2 ? 'walkB' : 'walkA') : a.mode;
-    const say = a.say && a.sayUntil > now ? a.say : null;
-    let grid = drawCat(a.cat, pose, say);
-    // cats are drawn facing right; walking left means mirrored
-    if (a.dir < 0) grid = mirror(grid);
-    const shift = a.dir < 0 ? grid[0].length - a.width : 0; // keep the body still when a bubble appears
-    for (const row of grid) {
-      const line = Array.from({ length: STAGE_WIDTH }, () => ({ ch: ' ' }));
-      row.forEach((cell, i) => {
-        const x = a.x + i - shift;
-        if (x >= 0 && x < STAGE_WIDTH && (cell.ch !== ' ' || cell.bg)) line[x] = cell;
-      });
-      rows.push(cellsToHtml(line));
-    }
-  }
-  stage.innerHTML = `<pre aria-label="${escapeHtml(cats.map((c) => c.name).join(', '))}">${rows.join('\n')}</pre>`;
+  stage.innerHTML = `<pre aria-label="${escapeHtml(cats.map((c) => c.name).join(', '))}">${actorsToHtml(actors, STAGE_WIDTH)}</pre>`;
 }
 
 // ---------- events ----------
@@ -494,10 +437,196 @@ $('#code-tabs').addEventListener('click', (e) => {
   renderCode();
 });
 
+// ---------- the shared world ----------
+
+const player = (() => {
+  let saved = null;
+  try {
+    saved = JSON.parse(store.get('lwc-player') || 'null');
+  } catch {
+    /* new player */
+  }
+  if (saved && /^[A-Za-z0-9-]{16,64}$/.test(saved.id)) return saved;
+  const id = globalThis.crypto?.randomUUID?.() || Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const fresh = { id, name: '' };
+  store.set('lwc-player', JSON.stringify(fresh));
+  return fresh;
+})();
+
+const reported = new Set((() => {
+  try {
+    return JSON.parse(store.get('lwc-reported') || '[]');
+  } catch {
+    return [];
+  }
+})());
+
+let world = null; // the store
+let worldRecords = [];
+let worldNow = Math.floor(Date.now() / 1000);
+let worldView = 'square';
+const square = createWorldView();
+
+const worldError = (err) => message({ code: MESSAGES[err.code] ? err.code : 'server', params: err.params }, lang);
+
+function worldStatus(text, kind) {
+  const el = $('#world-status');
+  el.textContent = text;
+  el.className = `run-status ${kind}`;
+}
+
+function renderWorldMode() {
+  if (!world) return;
+  const el = $('#world-mode');
+  el.textContent = world.mode === 'local' ? UI[lang].localMode : UI[lang].sharedMode;
+  el.className = `world-mode ${world.mode}`;
+}
+
+function splitWorld() {
+  const now = worldNow;
+  const visible = worldRecords.filter((r) => !reported.has(r.id));
+  return {
+    living: visible.filter((r) => lifeOf(r, now).alive),
+    dead: visible.filter((r) => !lifeOf(r, now).alive),
+  };
+}
+
+function renderWorldLists() {
+  if (!world) return;
+  const t = UI[lang];
+  const { living, dead } = splitWorld();
+  $('#living').innerHTML = livingHtml(living, worldRecords, worldNow, t);
+  $('#cemetery').innerHTML = cemeteryHtml(dead, worldNow, t, lang === 'it' ? 'it-IT' : 'en-GB') || `<li class="empty">${t.emptyCemetery}</li>`;
+  const mine = living.filter((r) => r.mine && !r.mother).length;
+  $('#your-count').textContent = t.yourCount(mine, MAX_LIVING_PER_PLAYER);
+  renderSquare();
+}
+
+function renderSquare() {
+  $('#square').innerHTML = square.squareHtml(UI[lang].nobodyHere);
+}
+
+async function refreshWorld() {
+  if (!world) return;
+  try {
+    let { now, records } = await world.list(player);
+    // anyone's browser can bring today's kittens into the world: they are the
+    // same everywhere, and the server keeps only the first copy
+    const litters = dueLitters(records, now);
+    if (litters.length) {
+      const born = [];
+      for (const litter of litters) {
+        try {
+          const res = await world.addLitter(litter);
+          if (res.cats.length) born.push(litter);
+        } catch {
+          /* someone else was faster, or the server said no */
+        }
+      }
+      ({ now, records } = await world.list(player));
+      for (const litter of born) {
+        const mother = records.find((r) => r.id === litter.mother);
+        if (mother?.mine) worldStatus(UI[lang].newKittens(mother.name, litter.kittens.map((k) => k.name).join(', ')), 'party');
+      }
+    }
+    worldRecords = records;
+    worldNow = now;
+    clockOffset = now - Date.now() / 1000;
+    square.setCats(splitWorld().living, now);
+    renderWorldLists();
+  } catch (err) {
+    worldStatus(worldError(err), 'error');
+  }
+}
+
+let clockOffset = 0; // server time minus this computer's time
+
+async function putInWorld() {
+  const t = UI[lang];
+  const name = $('#player-name').value.trim();
+  if (!ranOk || hasErrors) return status(t.runBeforeWorld, 'error');
+  if (!name) {
+    status(t.needName, 'error');
+    $('#player-name').focus();
+    return;
+  }
+  if (!/^[\p{L}\p{N}][\p{L}\p{N} ]{0,19}$/u.test(name)) return status(message({ code: 'bad_name', params: { name } }, lang), 'error');
+  if (isBlocked(blocked, name)) return status(message({ code: 'blocked_name', params: { what: 'player' } }, lang), 'error');
+  player.name = name;
+  store.set('lwc-player', JSON.stringify(player));
+  const button = $('#to-world');
+  button.disabled = true;
+  try {
+    const res = await world.add(player, cats.map((cat) => toRecord(cat, { srcLang })));
+    status(t.added(res.cats.map((c) => c.name).join(', ')), 'party');
+    ranOk = false;
+    await refreshWorld();
+  } catch (err) {
+    status(worldError(err), 'error');
+    button.disabled = false;
+  }
+}
+
+async function reportCat(id) {
+  const t = UI[lang];
+  const cat = worldRecords.find((r) => r.id === id);
+  if (!cat || !window.confirm(t.reportConfirm(cat.name))) return;
+  try {
+    await world.report(id, { id: player.id, name: player.name || 'Player' });
+  } catch {
+    /* hidden for this player anyway */
+  }
+  reported.add(id);
+  store.set('lwc-reported', JSON.stringify([...reported]));
+  worldStatus(t.reported, 'ok');
+  square.setCats(splitWorld().living, worldNow);
+  renderWorldLists();
+}
+
+function showWorldView(view) {
+  worldView = view;
+  document.querySelectorAll('.world-tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.view === view)));
+  $('#square-view').hidden = view !== 'square';
+  $('#cemetery-view').hidden = view !== 'cemetery';
+}
+
+$('#to-world').addEventListener('click', putInWorld);
+$('#living').addEventListener('click', (e) => {
+  const id = e.target.dataset?.report;
+  if (id) reportCat(id);
+});
+$('.world-tabs').addEventListener('click', (e) => {
+  if (e.target.dataset?.view) showWorldView(e.target.dataset.view);
+});
+$('#player-name').value = player.name || '';
+$('#player-name').addEventListener('change', (e) => {
+  player.name = e.target.value.trim();
+  store.set('lwc-player', JSON.stringify(player));
+});
+
 // ---------- start ----------
 
 editor.value = store.get('lwc-program') ?? exampleCode(EXAMPLES[0], lang);
 renderTabs();
 applyLanguage();
 update();
-setInterval(tick, TICK_MS);
+setInterval(() => {
+  tick();
+  if (world && worldView === 'square' && !document.hidden) {
+    square.tick();
+    renderSquare();
+  }
+}, TICK_MS);
+
+(async () => {
+  blocked = await loadBlockedWords();
+  update();
+  world = await connect(store, blocked);
+  renderWorldMode();
+  await refreshWorld();
+  // ages change slowly: once a minute is plenty
+  setInterval(() => {
+    worldNow = Math.floor(Date.now() / 1000 + clockOffset);
+    refreshWorld();
+  }, 60000);
+})();

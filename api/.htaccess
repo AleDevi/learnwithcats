@@ -1,0 +1,4 @@
+# Only index.php is reachable from the web.
+<FilesMatch "^(?!index\.php$).*$">
+  Require all denied
+</FilesMatch>

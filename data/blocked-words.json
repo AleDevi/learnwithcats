@@ -1,0 +1,14 @@
+{
+  "_about": "Names of cats and players are checked against these words after lowercasing, removing accents, undoing simple letter swaps (4→a, 3→e, 1→i, 0→o, 5→s, 7→t, @→a, $→s) and squeezing repeated letters. 'contains' words are blocked anywhere inside a name; 'words' only as a whole word, because they are short or appear inside innocent words. Italian and English. Edit freely.",
+  "contains": [
+    "fuck", "fuk", "motherf", "cunt", "shit", "bitch", "asshole", "wank", "twat", "whore", "slut", "porn",
+    "niger", "nigga", "fagot", "retard", "tranny", "raghead", "wetback",
+    "cazo", "merda", "stronz", "putan", "troia", "vafancul", "fancul", "cogli", "minchia", "porcodio", "porcamadona",
+    "bastard", "froci", "richion", "culaton", "zocola", "mignot", "sbora", "pompin", "sgualdrin", "baldrac", "donac",
+    "mongoloid", "handicapat", "ritardat", "hitler", "mussolini"
+  ],
+  "words": [
+    "dick", "cock", "pussy", "prick", "rape", "sex", "nazi", "nazis", "kkk", "fag", "fags", "spic", "chink", "kike", "gook", "coon", "paki", "dyke",
+    "culo", "figa", "fica", "tete", "negro", "negra", "negri", "negre", "zingaro", "zingara", "zingari", "terone", "teroni", "duce", "zitela", "puta"
+  ]
+}

@@ -1,0 +1,4 @@
+# The word list is read by PHP and by the game; nothing else here is public.
+<FilesMatch "^(?!blocked-words\.json$).*$">
+  Require all denied
+</FilesMatch>
