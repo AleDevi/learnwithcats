@@ -99,9 +99,7 @@ npm test
 
 ## How it was made, and the AI inside
 
-This project is part of [My things (with) AI](https://mythingsai.com). The idea, the decisions and the testing are by Ale. The design and the code were written with **Claude** (Anthropic), used through Claude Code in a claude.ai project. Web searches for similar projects were also done by Claude.
-
-<!-- TODO(Ale): say which Claude plan was used and whether it was free. -->
+This project is part of [My things (with) AI](https://mythingsai.com). The idea, the decisions and the testing are by Ale. The design and the code were written with **Claude** (Anthropic), used through Claude Code in a claude.ai project, with a paid Claude subscription (Pro). Web searches for similar projects were also done by Claude.
 
 ## Licence
 
