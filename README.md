@@ -64,6 +64,8 @@ All the rules of life (age, death, kittens) are computed from timestamps in `js/
 
 ### Publishing on IONOS
 
+The game is meant for **learnwithcats.mythingsai.com**. Step by step: [docs/DEPLOY.md](docs/DEPLOY.md).
+
 `.github/workflows/deploy.yml` uploads the game over SFTP. It runs only when started by hand from the Actions tab, after the tests pass, and never deletes files on the server. It needs four repository secrets: `IONOS_SFTP_HOST`, `IONOS_SFTP_USER`, `IONOS_SFTP_PASSWORD`, `IONOS_SFTP_PATH`. Upload `api/config.php` by hand once.
 
 ### Tests
